@@ -8,5 +8,5 @@ export { default as Welcome } from '@views/home/Welcome';
 export { default as Home } from '@views/home/Home';
 // 404
 export { default as NotFound } from '@views/error/NotFound';
-// 系统管理
-export { default as SysLog } from '@views/systemManage/SysLog';
+// 图像金字塔标注
+export { default as ImageMark } from '@views/imageMark/ImageMark';
