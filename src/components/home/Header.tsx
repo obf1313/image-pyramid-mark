@@ -11,7 +11,7 @@ import './index.less';
 
 const Header = () => {
   return (
-    <Row className="header header-shadow" justify="space-between" align="middle">
+    <Row className="header" justify="space-between" align="middle">
       <Row align="middle" justify="center" className="header-title-icon">
         <img src={logo} alt="logo" height={28} />
         <div className="header-title">{projectName}</div>

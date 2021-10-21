@@ -134,14 +134,14 @@ const ImageMark = () => {
         }
       });
     }
-    // 获取倍数
-    scaleView();
-    // 初始化画布
-    initCanvas();
-    // 初始化比例尺
-    initScale();
-    // 自动更新比例
-    autoUpdateScaleWidth();
+    // // 获取倍数
+    // scaleView();
+    // // 初始化画布
+    // initCanvas();
+    // // 初始化比例尺
+    // initScale();
+    // // 自动更新比例
+    // autoUpdateScaleWidth();
   };
   // 初始化画布
   const initCanvas = () => {
