@@ -1,0 +1,138 @@
+@import './../../static/styles/colors';
+.current-pencil{
+  position: absolute;
+  top: 18px;
+  right: 10px;
+  display: flex;
+  align-items: center;
+}
+.toolbar{
+  display: flex;
+  flex-direction: column;
+  position: absolute;
+  right: 0;
+  padding: 8px;
+  background-color: rgba(0, 0, 0, 0.5);
+  border-radius: 5px 0 0 5px;
+}
+.toolbar-one{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 15px;
+  font-size: 18px;
+  cursor: pointer;
+  border: 1px dashed #ddd;
+  margin-bottom: 5px;
+  border-radius: 2px;
+}
+.toolbar-one-active{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 15px;
+  font-size: 18px;
+  cursor: pointer;
+  margin-bottom: 5px;
+  border-radius: 2px;
+  background-color: rgba(29, 165, 122, 0.2);
+  border: 1px dashed @primary-color;
+}
+.toolbar-one-active:last-child{
+  margin-bottom: 0;
+}
+.toolbar-one:last-child{
+  margin-bottom: 0;
+}
+.toolbar-one:hover{
+  background-color: rgba(29, 165, 122, 0.2);
+  border: 1px dashed @primary-color;
+  transition: all 300ms;
+}
+.toolbar-pencil{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  right: 0;
+  top: 38px;
+  padding: 8px;
+  background-color: rgba(0, 0, 0, 0.5);
+  border-radius: 2px;
+}
+.toolbar-one-right-bottom{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 5px;
+  padding: 10px 15px;
+  width: 50px;
+  height: 40px;
+  font-size: 18px;
+  cursor: pointer;
+  border: 1px dashed #ddd;
+  border-radius: 2px;
+}
+.toolbar-one-right-bottom:last-child{
+  margin-right: 0;
+}
+.toolbar-one-right-bottom-active{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 5px;
+  padding: 10px 15px;
+  width: 50px;
+  height: 40px;
+  font-size: 18px;
+  cursor: pointer;
+  border-radius: 2px;
+  background-color: rgba(29, 165, 122, 0.2);
+  border: 1px dashed @primary-color;
+}
+.toolbar-one-right-bottom:hover{
+  background-color: rgba(29, 165, 122, 0.2);
+  border: 1px dashed @primary-color;
+  transition: all 300ms;
+}
+.toolbar-container{
+  display: flex;
+  padding: 0 10px 10px 10px;
+}
+.scale-bar{
+  position: absolute;
+  left: 0;
+  padding: 8px;
+  background-color: rgba(0, 0, 0, 0.5);
+  border-radius: 0 5px 5px 0;
+}
+.scale-number{
+  border: 1px solid #ddd;
+  font-size: 14px;
+  margin-bottom: 5px;
+  text-align: center;
+  padding: 5px 0;
+  border-radius: 2px;
+}
+.scale-multiple {
+  border: 1px solid #ddd;
+  font-size: 14px;
+  margin-bottom: 5px;
+  text-align: center;
+  padding: 5px 0;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: all 300ms;
+}
+.scale-multiple:hover {
+  background-color: rgba(29, 165, 122, 0.2);
+  border: 1px dashed @primary-color;
+  transition: all 300ms;
+}
+.note-one {
+  padding: 10px 5px;
+  cursor: pointer;
+}
+.note-one:hover {
+  background-color: rgba(29, 165, 122, 0.2);
+}
