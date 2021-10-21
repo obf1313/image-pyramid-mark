@@ -10,3 +10,4 @@ export { default as Home } from '@views/home/Home';
 export { default as NotFound } from '@views/error/NotFound';
 // 图像金字塔标注
 export { default as ImageMark } from '@views/imageMark/ImageMark';
+export { default as OnlyImage } from '@views/imageMark/OnlyImage';

@@ -42,12 +42,11 @@ module.exports = {
     // 部署时使用 nginx 反向代理到后台端口
     proxy: {
       '/api': {
-        target: 'http://localhost:8080',
+        target: 'http://localhost:50010/openseadragon',
         pathRewrite: {
           '^/api': ''
         },
         bypass: (req) => {
-          // 第一种方法，访问静态资源，判断路径中是否包含后缀，如果包含，就不进入index.html页面，就可以访问到代理的静态资源
           // https://webpack.js.org/configuration/dev-server/#devserverproxy
           if (req.url.indexOf('.') !== -1) {
             return null;
@@ -57,14 +56,7 @@ module.exports = {
             return '/index.html';
           }
         }
-      },
-      // 第二种方法就是直接配置一个代理去访问静态资源路径，不在 index.html 页面中
-      // '/imagesStatic': {
-      //   target: 'http://localhost:8084',
-      //   pathRewrite: {
-      //     '^/imagesStatic': ''
-      //   }
-      // }
+      }
     }
   }
 };

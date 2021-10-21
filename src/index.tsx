@@ -6,7 +6,7 @@
 import React, { createContext, useReducer } from 'react';
 import { BrowserRouter as Router, Switch, Route } from 'react-router-dom';
 import { ErrorBoundary } from '@components/index';
-import { NotFound, Home, ImageMark } from '@views/index';
+import { NotFound, Home, ImageMark, OnlyImage } from '@views/index';
 import { platform } from '@utils/CommonVars';
 import { homeInit, homeReducer } from '@views/home/HomeReducer';
 
@@ -21,7 +21,7 @@ const App = () => {
           <Home>
             <Switch>
               <ErrorBoundary>
-                <Route exact path={platform} component={ImageMark} />
+                <Route exact path={platform} component={OnlyImage} />
               </ErrorBoundary>
               <Route component={NotFound} />
             </Switch>
