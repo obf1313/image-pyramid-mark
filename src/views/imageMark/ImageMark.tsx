@@ -29,6 +29,10 @@ enum EPencilType {
   polygon = 'polygon'
 }
 
+// 显示容器
+let openSeadragon: any = null;
+// 画布
+let fabricCanvas: any = null;
 // 绘制状态
 let doDrawing: boolean = false;
 // 当前选中对象
@@ -59,9 +63,7 @@ let mouseTo = {
 };
 
 const ImageMark = () => {
-  const [fabricCanvas, setFabricCanvas] = useState<any>();
   const [canvasShape, setCanvasShape] = useState<[number, number]>([1, 1]); // [canvas 宽度， canvas 高度]
-  const [openSeaDragon, setOpenSeaDragon] = useState<any>();
   const [toolBarBoxShow, setTollBarBoxShow] = useState<boolean>(false);
   const [annotationView, setAnnotationView] = useState<boolean>(false);
   const [selectPencil, setSelectPencil] = useState<EPencilType | ''>(EPencilType.polygon);
@@ -78,46 +80,8 @@ const ImageMark = () => {
     initOpenSeaDragon();
   }, []);
   useEffect(() => {
-    if (openSeaDragon) {
-      // 获取倍数
-      scaleView();
-      // 初始化比例尺
-      initScale();
-      // 自动更新比例
-      autoUpdateScaleWidth();
-      // 初始化画布
-      initCanvas();
-    }
-  }, [openSeaDragon]);
-  useEffect(() => {
-    if (fabricCanvas) {
-      mouseUp();
-      onSelectObject();
-      getAnnotate();
-    }
-  }, [fabricCanvas]);
-  useEffect(() => {
-    if (fabricCanvas) {
-      openSeaDragon.addHandler('update-viewport', throttle(() => {
-        resize();
-        resizeCanvas();
-      }, 1000));
-      openSeaDragon.addHandler('open', () => {
-        resize();
-        resizeCanvas();
-      });
-    }
-  }, [fabricCanvas, canvasShape]);
-  useEffect(() => {
-    if (fabricCanvas) {
-      mouseDown();
-    }
-  }, [fabricCanvas, selectPencil, annotationView]);
-  useEffect(() => {
-    if (fabricCanvas) {
-      mouseMove();
-    }
-  }, [fabricCanvas, selectPencil, annotationView, pencilColor, pencilWidth]);
+    resizeCanvas();
+  }, [canvasShape]);
   useEffect(() => {
     if (selectPencil === '') {
       doDrawing = false;
@@ -127,7 +91,7 @@ const ImageMark = () => {
   // 初始化 openSeadragon
   const initOpenSeaDragon = () => {
     if (section) {
-      const tempOpenSeadragon = OpenSeadragon({
+      openSeadragon = OpenSeadragon({
         id: 'openSeaDragon',
         // 装有各种按钮名称的文件夹images地址
         prefixUrl: serverPath + '/images/',
@@ -176,7 +140,14 @@ const ImageMark = () => {
           clickToZoom: false
         }
       });
-      setOpenSeaDragon(tempOpenSeadragon);
+      // 获取倍数
+      scaleView();
+      // 初始化比例尺
+      initScale();
+      // 自动更新比例
+      autoUpdateScaleWidth();
+      // 初始化画布
+      initCanvas();
     }
   };
   // 初始化画布
@@ -188,12 +159,12 @@ const ImageMark = () => {
       canvasDiv.style.top = '0';
       canvasDiv.style.width = '100%';
       canvasDiv.style.height = '100%';
-      openSeaDragon.canvas.appendChild(canvasDiv);
+      openSeadragon.canvas.appendChild(canvasDiv);
       myCanvas = document.createElement('canvas');
       myCanvas.setAttribute('id', 'canvas');
       canvasDiv.appendChild(myCanvas);
       resize();
-      const fabricCanvas = new fabric.Canvas('canvas', {
+      fabricCanvas = new fabric.Canvas('canvas', {
         selection: false
       });
       // 设置笔刷颜色和宽度
@@ -206,13 +177,23 @@ const ImageMark = () => {
           options.e.stopPropagation();
         }
       });
-      setFabricCanvas(fabricCanvas);
+      openSeadragon.addHandler('update-viewport', throttle(() => {
+        resize();
+      }, 1000));
+      openSeadragon.addHandler('open', () => {
+        resize();
+      });
+      mouseUp();
+      onSelectObject();
+      getAnnotate();
+      mouseDown();
+      mouseMove();
     }
   };
   // 初始化比例尺工具
   const initScale = () => {
     // 比例尺
-    openSeaDragon.scalebar({
+    openSeadragon.scalebar({
       // type: OpenSeadragon.ScalebarType.MICROSCOPY,
       // 设置像素与实际的比值
       pixelsPerMeter: 1000000,
@@ -230,33 +211,28 @@ const ImageMark = () => {
   };
   // 自动更新放大倍数
   const autoUpdateScaleWidth = () => {
-    openSeaDragon.addHandler('animation', scaleView);
+    openSeadragon.addHandler('animation', scaleView);
   };
   // 改变画布
   const resize = () => {
-    if (canvasShape[0] !== openSeaDragon.container.clientWidth) {
-      const width = openSeaDragon.container.clientWidth;
-      setCanvasShape([width, canvasShape[1]]);
-      canvasDiv.setAttribute('width', width);
-      myCanvas.setAttribute('width', width);
-    }
-    if (canvasShape[1] !== openSeaDragon.container.clientHeight) {
-      const height = openSeaDragon.container.clientHeight;
-      setCanvasShape([canvasShape[0], height]);
-      canvasDiv.setAttribute('height', height);
-      myCanvas.setAttribute('height', height);
-    }
+    let width = openSeadragon.container.clientWidth;
+    let height = openSeadragon.container.clientHeight;
+    setCanvasShape([width, height]);
+    canvasDiv.setAttribute('width', width);
+    myCanvas.setAttribute('width', width);
+    canvasDiv.setAttribute('height', height);
+    myCanvas.setAttribute('height', height);
   };
   // 改变画布
   const resizeCanvas = () => {
     if (section) {
       let origin = new OpenSeadragon.Point(0, 0);
-      let viewportZoom = openSeaDragon.viewport.getZoom(true);
+      let viewportZoom = openSeadragon.viewport.getZoom(true);
       fabricCanvas.setWidth(canvasShape[0]);
       fabricCanvas.setHeight(canvasShape[1]);
-      let zoom = openSeaDragon.viewport._containerInnerSize.x * viewportZoom / Number(section.width);
+      let zoom = openSeadragon.viewport._containerInnerSize.x * viewportZoom / Number(section.width);
       fabricCanvas.setZoom(zoom);
-      let viewportWindowPoint = openSeaDragon.viewport.viewportToWindowCoordinates(origin);
+      let viewportWindowPoint = openSeadragon.viewport.viewportToWindowCoordinates(origin);
       let x = Math.round(viewportWindowPoint.x);
       let y = Math.round(viewportWindowPoint.y);
       let canvasOffset = canvasDiv.getBoundingClientRect();
@@ -288,7 +264,7 @@ const ImageMark = () => {
   // 显示工具盒子
   const showToolBarBox = () => {
     setTollBarBoxShow(!toolBarBoxShow);
-    openSeaDragon.setMouseNavEnabled(toolBarBoxShow);
+    openSeadragon.setMouseNavEnabled(toolBarBoxShow);
   };
   // 选择画笔
   const handleSelectPencil = (selectPencil: EPencilType) => {
@@ -297,12 +273,12 @@ const ImageMark = () => {
   };
   // 缩放视图
   const scaleView = () => {
-    const zoom: number = openSeaDragon.viewport.getZoom(true);
+    const zoom: number = openSeadragon.viewport.getZoom(true);
     setZoomNum(Number(zoom.toFixed(1)));
   };
   // 放大倍数
   const toMultiple = (multiple: number) => {
-    openSeaDragon.viewport.zoomTo(multiple);
+    openSeadragon.viewport.zoomTo(multiple);
   };
   // 取消添加批注
   const cancelAddAnnotate = () => {
@@ -377,8 +353,8 @@ const ImageMark = () => {
       // remove 仅将目前移除，clear 清除上一残留，只剩当前
       fabricCanvas.remove(currCanvasObject);
     }
-    const zoom: any = openSeaDragon.viewport.getZoom(true);
-    let canZoom: any = openSeaDragon.viewport.viewportToImageZoom(zoom);
+    const zoom: any = openSeadragon.viewport.getZoom(true);
+    let canZoom: any = openSeadragon.viewport.viewportToImageZoom(zoom);
     let canvasObject: any = null;
     let left: number = mouseFrom.x;
     let top: number = mouseFrom.y;
