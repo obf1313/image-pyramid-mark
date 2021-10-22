@@ -11,7 +11,6 @@ import OpenSeadragon from 'openseadragon';
 import { fabric } from 'fabric';
 import './../../static/js/openseadragon-scalebar';
 import { serverPath } from '@utils/CommonVars';
-import { throttle } from '@utils/CommonFunc';
 import './ImageMark.less';
 
 const { TabPane } = Tabs;
@@ -82,6 +81,9 @@ const ImageMark = () => {
   useEffect(() => {
     resizeCanvas();
   }, [canvasShape]);
+  useEffect(() => {
+    mouseMove();
+  }, [selectPencil, pencilWidth, pencilColor]);
   useEffect(() => {
     if (selectPencil === '') {
       doDrawing = false;
@@ -177,12 +179,8 @@ const ImageMark = () => {
           options.e.stopPropagation();
         }
       });
-      openSeadragon.addHandler('update-viewport', () => {
-        resize();
-      });
-      openSeadragon.addHandler('open', () => {
-        resize();
-      });
+      openSeadragon.addHandler('update-viewport', resize);
+      openSeadragon.addHandler('open', resize);
       mouseDown();
       mouseMove();
       mouseUp();
@@ -267,7 +265,8 @@ const ImageMark = () => {
     openSeadragon.setMouseNavEnabled(toolBarBoxShow);
   };
   // 选择画笔
-  const handleSelectPencil = (selectPencil: EPencilType) => {
+  const handleSelectPencil = (e: MouseEvent, selectPencil: EPencilType) => {
+    e.stopPropagation();
     ifSelectObj = false;
     setSelectPencil(selectPencil);
   };
@@ -457,17 +456,17 @@ const ImageMark = () => {
               <BorderOutlined
                 className={selectPencil === 'rectangle' ? 'toolbar-one-right-bottom-active' : 'toolbar-one-right-bottom'}
                 title="矩形"
-                onClick={() => handleSelectPencil(EPencilType.rectangle)}
+                onClick={(e: any) => handleSelectPencil(e, EPencilType.rectangle)}
               />
               <StarOutlined
                 className={selectPencil === EPencilType.polygon ? 'toolbar-one-right-bottom-active' : 'toolbar-one-right-bottom'}
                 title="多边形"
-                onClick={() => handleSelectPencil(EPencilType.polygon)}
+                onClick={(e: any) => handleSelectPencil(e, EPencilType.polygon)}
               />
               <div
                 className={selectPencil === EPencilType.circle ? 'toolbar-one-right-bottom-active' : 'toolbar-one-right-bottom'}
                 title="圆形"
-                onClick={() => handleSelectPencil(EPencilType.circle)}
+                onClick={(e: any) => handleSelectPencil(e, EPencilType.circle)}
               >
                 ○
               </div>
