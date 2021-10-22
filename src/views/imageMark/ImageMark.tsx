@@ -177,17 +177,17 @@ const ImageMark = () => {
           options.e.stopPropagation();
         }
       });
-      openSeadragon.addHandler('update-viewport', throttle(() => {
+      openSeadragon.addHandler('update-viewport', () => {
         resize();
-      }, 1000));
+      });
       openSeadragon.addHandler('open', () => {
         resize();
       });
+      mouseDown();
+      mouseMove();
       mouseUp();
       onSelectObject();
       getAnnotate();
-      mouseDown();
-      mouseMove();
     }
   };
   // 初始化比例尺工具
@@ -297,10 +297,8 @@ const ImageMark = () => {
   // 鼠标点击
   const mouseDown = () => {
     fabricCanvas.on('mouse:down', (options: any) => {
-      if (!annotationView && selectPencil !== '') {
-        // @ts-ignore
+      if (!annotationView) {
         let offsetX = fabricCanvas.calcOffset().viewportTransform[4];
-        // @ts-ignore
         let offsetY = fabricCanvas.calcOffset().viewportTransform[5];
         const x: number = Math.round(options.e.offsetX - offsetX);
         const y: number = Math.round(options.e.offsetY - offsetY);
