@@ -25,7 +25,7 @@ interface IFile {
 enum EPencilType {
   circle = 'circle',
   rectangle = 'rectangle',
-  polygon = ''
+  polygon = 'polygon'
 }
 
 // 绘制状态

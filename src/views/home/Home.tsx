@@ -4,8 +4,7 @@
  * @createTime: 2020/7/16 17:03
  **/
 import React, { useState } from 'react';
-import { Row, Layout, BackTop } from 'antd';
-import { VerticalAlignTopOutlined } from '@ant-design/icons';
+import { Row, Layout } from 'antd';
 import { Header } from '@components/index';
 import { useHistory } from 'react-router';
 import './index.less';
@@ -36,11 +35,6 @@ const Home = (props: IProps) => {
       <Content className="content" id="content">
         {!loading && children}
       </Content>
-      <BackTop>
-        <div className="back-top">
-          <VerticalAlignTopOutlined className="back-top-icon" />
-        </div>
-      </BackTop>
     </Row>
   );
 };
