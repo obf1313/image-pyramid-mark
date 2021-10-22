@@ -4,14 +4,15 @@
  * @createTime: 2021/10/8 10:34
  **/
 import React, { useState, useEffect } from 'react';
-import { Row, Slider, Tabs, Button, Popconfirm, Modal, message } from 'antd';
+import { Row, Slider, Tabs, Button, Modal, message } from 'antd';
 import { CompactPicker } from 'react-color';
-import { BorderOutlined, StarOutlined, EditOutlined, SaveOutlined, PlusCircleOutlined, MinusCircleOutlined } from '@ant-design/icons';
+import { BorderOutlined, StarOutlined, EditOutlined, PlusCircleOutlined, MinusCircleOutlined } from '@ant-design/icons';
 import OpenSeadragon from 'openseadragon';
 import { fabric } from 'fabric';
+import './../../static/js/openseadragon-scalebar';
 import { serverPath } from '@utils/CommonVars';
-import './ImageMark.less';
 import { throttle } from '@utils/CommonFunc';
+import './ImageMark.less';
 
 const { TabPane } = Tabs;
 
@@ -100,7 +101,7 @@ const ImageMark = () => {
       openSeaDragon.addHandler('update-viewport', throttle(() => {
         resize();
         resizeCanvas();
-      }, 500));
+      }, 1000));
       openSeaDragon.addHandler('open', () => {
         resize();
         resizeCanvas();
@@ -211,21 +212,21 @@ const ImageMark = () => {
   // 初始化比例尺工具
   const initScale = () => {
     // 比例尺
-    // openSeaDragon.scalebar({
-    //   // type: OpenSeadragon.ScalebarType.MICROSCOPY,
-    //   // 设置像素与实际的比值
-    //   pixelsPerMeter: 1000000,
-    //   minWidth: '150px',
-    //   // location: OpenSeadragon.ScalebarLocation.BOTTOM_LEFT,
-    //   xOffset: 0,
-    //   yOffset: 0,
-    //   stayInsideImage: false,
-    //   color: 'rgb(0, 0, 0)',
-    //   fontColor: 'rgb(0, 0, 0)',
-    //   backgroundColor: 'rgba(255, 255, 255, 0.5)',
-    //   fontSize: 'middle',
-    //   barThickness: 4,
-    // });
+    openSeaDragon.scalebar({
+      // type: OpenSeadragon.ScalebarType.MICROSCOPY,
+      // 设置像素与实际的比值
+      pixelsPerMeter: 1000000,
+      minWidth: '150px',
+      // location: OpenSeadragon.ScalebarLocation.BOTTOM_LEFT,
+      xOffset: 0,
+      yOffset: 0,
+      stayInsideImage: false,
+      color: 'rgb(0, 0, 0)',
+      fontColor: 'rgb(0, 0, 0)',
+      backgroundColor: 'rgba(255, 255, 255, 0.5)',
+      fontSize: 'middle',
+      barThickness: 4,
+    });
   };
   // 自动更新放大倍数
   const autoUpdateScaleWidth = () => {
@@ -274,14 +275,6 @@ const ImageMark = () => {
         return <StarOutlined />;
       default:
         return '未选择';
-    }
-  };
-  // 保存批注
-  const saveMark = () => {
-    if (section) {
-      const currMark = fabricCanvas.toJSON(['id', 'text']);
-      const markData = JSON.stringify(currMark);
-      localStorage.setItem('markData', markData);
     }
   };
   // 监听键盘 delete 按钮
@@ -440,9 +433,10 @@ const ImageMark = () => {
   };
   // 选择对象
   const onSelectObject = () => {
-    fabricCanvas.on('object:selected', (options: any) => {
+    fabricCanvas.on('selection:created', (options: any) => {
       if (options.target) {
         selectObj = options.target;
+        ifSelectObj = true;
         resetCanvasOption();
       }
     });
@@ -452,17 +446,17 @@ const ImageMark = () => {
     const note = localStorage.getItem('markData');
     if (note) {
       // 写入 Canvas
-      fabricCanvas.loadFromJSON(JSON.stringify(note), () => {
+      fabricCanvas.loadFromJSON(JSON.parse(note), () => {
         fabricCanvas.renderAll();
       });
     }
   };
   // 添加批注
-  const addAnnotate = (value: any) => {
-    currCanvasObject.text = value.content;
+  const addAnnotate = () => {
+    currCanvasObject.text = '标注';
     currCanvasObject.id = new Date().valueOf();
     fabricCanvas.renderAll();
-    sessionStorage.setItem('markData', JSON.stringify(fabricCanvas.toJSON(['id', 'text']).objects));
+    localStorage.setItem('markData', JSON.stringify(fabricCanvas.toJSON(['id', 'text'])));
     setAnnotationView(false);
     resetCanvasOption();
   };
@@ -473,9 +467,6 @@ const ImageMark = () => {
           <div>画笔：</div>
           <div style={{ width: 50 }}>{selectPencilHtml()}</div>
         </div>
-        <Popconfirm title="是否保存当前批注？" onConfirm={saveMark} okText="确定" cancelText="取消" >
-          <Button size="small" type="primary" icon={<SaveOutlined />} style={{ marginRight: 10 }}>保存批注</Button>
-        </Popconfirm>
       </div>
       <div id="openSeaDragon" onKeyUp={listenDelete} style={{ width: '100%', height: 'calc(100vh - 60px)' }} />
       <div className="toolbar" style={{ top: 'calc(100vh / 2 - 120px)' }}>
