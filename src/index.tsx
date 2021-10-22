@@ -21,7 +21,7 @@ const App = () => {
           <Home>
             <Switch>
               <ErrorBoundary>
-                <Route exact path={platform} component={OnlyImage} />
+                <Route exact path={platform} component={ImageMark} />
               </ErrorBoundary>
               <Route component={NotFound} />
             </Switch>

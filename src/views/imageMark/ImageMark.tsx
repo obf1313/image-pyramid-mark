@@ -11,6 +11,7 @@ import OpenSeadragon from 'openseadragon';
 import { fabric } from 'fabric';
 import { serverPath } from '@utils/CommonVars';
 import './ImageMark.less';
+import { throttle } from '@utils/CommonFunc';
 
 const { TabPane } = Tabs;
 
@@ -76,6 +77,47 @@ const ImageMark = () => {
     initOpenSeaDragon();
   }, []);
   useEffect(() => {
+    if (openSeaDragon) {
+      // 获取倍数
+      scaleView();
+      // 初始化比例尺
+      initScale();
+      // 自动更新比例
+      autoUpdateScaleWidth();
+      // 初始化画布
+      initCanvas();
+    }
+  }, [openSeaDragon]);
+  useEffect(() => {
+    if (fabricCanvas) {
+      mouseUp();
+      onSelectObject();
+      getAnnotate();
+    }
+  }, [fabricCanvas]);
+  useEffect(() => {
+    if (fabricCanvas) {
+      openSeaDragon.addHandler('update-viewport', throttle(() => {
+        resize();
+        resizeCanvas();
+      }, 500));
+      openSeaDragon.addHandler('open', () => {
+        resize();
+        resizeCanvas();
+      });
+    }
+  }, [fabricCanvas, canvasShape]);
+  useEffect(() => {
+    if (fabricCanvas) {
+      mouseDown();
+    }
+  }, [fabricCanvas, selectPencil, annotationView]);
+  useEffect(() => {
+    if (fabricCanvas) {
+      mouseMove();
+    }
+  }, [fabricCanvas, selectPencil, annotationView, pencilColor, pencilWidth]);
+  useEffect(() => {
     if (selectPencil === '') {
       doDrawing = false;
       ifSelectObj = true;
@@ -84,7 +126,7 @@ const ImageMark = () => {
   // 初始化 openSeadragon
   const initOpenSeaDragon = () => {
     if (section) {
-      OpenSeadragon({
+      const tempOpenSeadragon = OpenSeadragon({
         id: 'openSeaDragon',
         // 装有各种按钮名称的文件夹images地址
         prefixUrl: serverPath + '/images/',
@@ -133,15 +175,8 @@ const ImageMark = () => {
           clickToZoom: false
         }
       });
+      setOpenSeaDragon(tempOpenSeadragon);
     }
-    // // 获取倍数
-    // scaleView();
-    // // 初始化画布
-    // initCanvas();
-    // // 初始化比例尺
-    // initScale();
-    // // 自动更新比例
-    // autoUpdateScaleWidth();
   };
   // 初始化画布
   const initCanvas = () => {
@@ -170,39 +205,27 @@ const ImageMark = () => {
           options.e.stopPropagation();
         }
       });
-      openSeaDragon.addHandler('update-viewport', () => {
-        resize();
-        resizeCanvas();
-      });
-      openSeaDragon.addHandler('open', () => {
-        resize();
-        resizeCanvas();
-      });
-      mouseDown();
-      mouseMove();
-      mouseUp();
-      onSelectObject();
-      getAnnotate();
+      setFabricCanvas(fabricCanvas);
     }
   };
   // 初始化比例尺工具
   const initScale = () => {
     // 比例尺
-    openSeaDragon.scalebar({
-      // type: OpenSeadragon.ScalebarType.MICROSCOPY,
-      // 设置像素与实际的比值
-      pixelsPerMeter: 1000000,
-      minWidth: '150px',
-      // location: OpenSeadragon.ScalebarLocation.BOTTOM_LEFT,
-      xOffset: 0,
-      yOffset: 0,
-      stayInsideImage: false,
-      color: 'rgb(0, 0, 0)',
-      fontColor: 'rgb(0, 0, 0)',
-      backgroundColor: 'rgba(255, 255, 255, 0.5)',
-      fontSize: 'middle',
-      barThickness: 4,
-    });
+    // openSeaDragon.scalebar({
+    //   // type: OpenSeadragon.ScalebarType.MICROSCOPY,
+    //   // 设置像素与实际的比值
+    //   pixelsPerMeter: 1000000,
+    //   minWidth: '150px',
+    //   // location: OpenSeadragon.ScalebarLocation.BOTTOM_LEFT,
+    //   xOffset: 0,
+    //   yOffset: 0,
+    //   stayInsideImage: false,
+    //   color: 'rgb(0, 0, 0)',
+    //   fontColor: 'rgb(0, 0, 0)',
+    //   backgroundColor: 'rgba(255, 255, 255, 0.5)',
+    //   fontSize: 'middle',
+    //   barThickness: 4,
+    // });
   };
   // 自动更新放大倍数
   const autoUpdateScaleWidth = () => {
@@ -344,7 +367,7 @@ const ImageMark = () => {
       mouseTo.x = Math.round(options.e.offsetX - offsetX);
       mouseTo.y = Math.round(options.e.offsetY - offsetY);
       if (currCanvasObject) {
-        if (currCanvasObject.width <= 5) {
+        if (currCanvasObject.width <= 1) {
           fabricCanvas.remove(currCanvasObject).renderAll();
           message.error('标注范围太小，请重新标注！');
           resetCanvasOption();
@@ -420,8 +443,8 @@ const ImageMark = () => {
     fabricCanvas.on('object:selected', (options: any) => {
       if (options.target) {
         selectObj = options.target;
+        resetCanvasOption();
       }
-      setSelectPencil('');
     });
   };
   // 获取批注数据
@@ -433,6 +456,15 @@ const ImageMark = () => {
         fabricCanvas.renderAll();
       });
     }
+  };
+  // 添加批注
+  const addAnnotate = (value: any) => {
+    currCanvasObject.text = value.content;
+    currCanvasObject.id = new Date().valueOf();
+    fabricCanvas.renderAll();
+    sessionStorage.setItem('markData', JSON.stringify(fabricCanvas.toJSON(['id', 'text']).objects));
+    setAnnotationView(false);
+    resetCanvasOption();
   };
   return (
     <Row>
@@ -510,7 +542,7 @@ const ImageMark = () => {
         onCancel={cancelAddAnnotate}
         footer={false}
       >
-        表单
+        <Button onClick={addAnnotate}>确认</Button>
       </Modal>
     </Row>
   );
