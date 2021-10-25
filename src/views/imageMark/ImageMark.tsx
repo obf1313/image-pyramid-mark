@@ -256,6 +256,7 @@ const ImageMark = () => {
     if (e && e.keyCode === 46) {
       // 删除选中的图形
       fabricCanvas.remove(selectObj).renderAll();
+      localStorage.setItem('markData', JSON.stringify(fabricCanvas.toJSON(['id', 'text'])));
       selectObj = null;
     }
   };
@@ -296,7 +297,7 @@ const ImageMark = () => {
   // 鼠标点击
   const mouseDown = () => {
     fabricCanvas.on('mouse:down', (options: any) => {
-      if (!annotationView) {
+      if (!annotationView && !ifSelectObj) {
         let offsetX = fabricCanvas.calcOffset().viewportTransform[4];
         let offsetY = fabricCanvas.calcOffset().viewportTransform[5];
         const x: number = Math.round(options.e.offsetX - offsetX);
@@ -434,14 +435,14 @@ const ImageMark = () => {
     resetCanvasOption();
   };
   return (
-    <Row>
+    <Row onKeyUp={listenDelete}>
       <div className="current-pencil">
         <div style={{ display: 'flex', alignItems: 'center' }}>
           <div>画笔：</div>
           <div style={{ width: 50 }}>{selectPencilHtml()}</div>
         </div>
       </div>
-      <div id="openSeaDragon" onKeyUp={listenDelete} style={{ width: '100%', height: 'calc(100vh - 60px)' }} />
+      <div id="openSeaDragon" style={{ width: '100%', height: 'calc(100vh - 60px)' }} />
       <div className="toolbar" style={{ top: 'calc(100vh / 2 - 120px)' }}>
         <EditOutlined
           className="toolbar-one"
