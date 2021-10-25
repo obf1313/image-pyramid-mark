@@ -334,7 +334,7 @@ const ImageMark = () => {
       mouseTo.x = Math.round(options.e.offsetX - offsetX);
       mouseTo.y = Math.round(options.e.offsetY - offsetY);
       if (currCanvasObject) {
-        if (currCanvasObject.width <= 1) {
+        if (Math.abs(currCanvasObject.width) <= 1) {
           fabricCanvas.remove(currCanvasObject).renderAll();
           message.error('标注范围太小，请重新标注！');
           resetCanvasOption();
@@ -356,9 +356,9 @@ const ImageMark = () => {
     let canvasObject: any = null;
     let left: number = mouseFrom.x;
     let top: number = mouseFrom.y;
+    const radius = Math.sqrt((mouseTo.x - left) * (mouseTo.x - left) + (mouseTo.y - top) * (mouseTo.y - top)) / canZoom;
     switch (selectPencil) {
       case EPencilType.circle:
-        const radius = Math.sqrt((mouseTo.x - left) * (mouseTo.x - left) + (mouseTo.y - top) * (mouseTo.y - top)) / canZoom;
         canvasObject = new fabric.Circle({
           left: left / canZoom,
           top: top / canZoom,
