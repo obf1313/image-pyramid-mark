@@ -7,3 +7,5 @@
 export { default as ErrorBoundary } from '@components/ErrorBoundary';
 // 首页
 export { default as Header } from '@components/home/Header';
+// 标注
+export { default as PencilSetting, EPencilType, usePencilSetting } from '@components/imageMark/PencilSetting';

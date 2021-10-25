@@ -4,28 +4,20 @@
  * @createTime: 2021/10/8 10:34
  **/
 import React, { useState, useEffect } from 'react';
-import { Row, Slider, Tabs, Button, Modal, message } from 'antd';
-import { CompactPicker } from 'react-color';
-import { BorderOutlined, StarOutlined, EditOutlined, PlusCircleOutlined, MinusCircleOutlined } from '@ant-design/icons';
+import { Row, Button, Modal, message } from 'antd';
+import { EditOutlined, PlusCircleOutlined, MinusCircleOutlined } from '@ant-design/icons';
 import OpenSeadragon from 'openseadragon';
 import { fabric } from 'fabric';
-import './../../static/js/openseadragon-scalebar';
+import { EPencilType, PencilSetting, usePencilSetting } from '@components/index';
 import { serverPath } from '@utils/CommonVars';
+import './../../static/js/openseadragon-scalebar';
 import './ImageMark.less';
-
-const { TabPane } = Tabs;
 
 interface IFile {
   folderName: string, // 服务器上文件夹名称
   cellSize: string, // 每张切片边长
   width: string, // 原始图片宽度
   height: string // 原始图片高度
-}
-
-enum EPencilType {
-  circle = 'circle',
-  rectangle = 'rectangle',
-  polygon = 'polygon'
 }
 
 // 显示容器
@@ -51,30 +43,19 @@ let canvasDiv: any = null;
 // canvas 容器
 let myCanvas: any = null;
 // 画笔初始位置
-let mouseFrom = {
-  x: 0,
-  y: 0
-};
+let mouseFrom = { x: 0, y: 0 };
 // 画笔终止位置
-let mouseTo = {
-  x: 0,
-  y: 0
-};
+let mouseTo = { x: 0, y: 0 };
 
 const ImageMark = () => {
+  const {
+    toolBarBoxShow, setToolBarBoxShow, setPencilWidth, pencilColor, setPencilColor,
+    pencilWidth, selectPencil, setSelectPencil, selectPencilHtml
+  } = usePencilSetting();
   const [canvasShape, setCanvasShape] = useState<[number, number]>([1, 1]); // [canvas 宽度， canvas 高度]
-  const [toolBarBoxShow, setTollBarBoxShow] = useState<boolean>(false);
   const [annotationView, setAnnotationView] = useState<boolean>(false);
-  const [selectPencil, setSelectPencil] = useState<EPencilType | ''>(EPencilType.polygon);
-  const [pencilColor, setPencilColor] = useState<string>('#F44E3B');
-  const [pencilWidth, setPencilWidth] = useState<number>(5);
   const [zoomNum, setZoomNum] = useState<number>(5);
-  const section: IFile = {
-    folderName: 'DSI0',
-    cellSize: '512',
-    width: '46511',
-    height: '49974'
-  };
+  const section: IFile = { folderName: 'DSI0', cellSize: '512', width: '46511', height: '49974' };
   useEffect(() => {
     initOpenSeaDragon();
   }, []);
@@ -84,12 +65,6 @@ const ImageMark = () => {
   useEffect(() => {
     mouseMove();
   }, [selectPencil, pencilWidth, pencilColor]);
-  useEffect(() => {
-    if (selectPencil === '') {
-      doDrawing = false;
-      ifSelectObj = true;
-    }
-  }, [selectPencil]);
   // 初始化 openSeadragon
   const initOpenSeaDragon = () => {
     if (section) {
@@ -154,49 +129,41 @@ const ImageMark = () => {
   };
   // 初始化画布
   const initCanvas = () => {
-    if (section) {
-      canvasDiv = document.createElement('div');
-      canvasDiv.style.position = 'absolute';
-      canvasDiv.style.left = '0';
-      canvasDiv.style.top = '0';
-      canvasDiv.style.width = '100%';
-      canvasDiv.style.height = '100%';
-      openSeadragon.canvas.appendChild(canvasDiv);
-      myCanvas = document.createElement('canvas');
-      myCanvas.setAttribute('id', 'canvas');
-      canvasDiv.appendChild(myCanvas);
-      resize();
-      fabricCanvas = new fabric.Canvas('canvas', {
-        selection: false
-      });
-      // 设置笔刷颜色和宽度
-      fabricCanvas.freeDrawingBrush.color = pencilColor;
-      fabricCanvas.freeDrawingBrush.width = pencilWidth;
-      fabricCanvas.on('mouse:down', (options: any) => {
-        if (options.target) {
-          options.e.preventDefaultAction = true;
-          options.e.preventDefault();
-          options.e.stopPropagation();
-        }
-      });
-      openSeadragon.addHandler('update-viewport', resize);
-      openSeadragon.addHandler('open', resize);
-      mouseDown();
-      mouseMove();
-      mouseUp();
-      onSelectObject();
-      getAnnotate();
-    }
+    // 创建 canvas 画布容器
+    canvasDiv = document.createElement('div');
+    canvasDiv.style.position = 'absolute';
+    canvasDiv.style.left = canvasDiv.style.top = '0';
+    canvasDiv.style.width = canvasDiv.style.height = '100%';
+    // 将容器放进 openSeadragon 中
+    openSeadragon.canvas.appendChild(canvasDiv);
+    // 创建画布
+    myCanvas = document.createElement('canvas');
+    myCanvas.setAttribute('id', 'canvas');
+    // 将画布放入 画布容器中
+    canvasDiv.appendChild(myCanvas);
+    resize();
+    fabricCanvas = new fabric.Canvas('canvas', { selection: false });
+    // 设置笔刷颜色和宽度
+    fabricCanvas.freeDrawingBrush.color = pencilColor;
+    fabricCanvas.freeDrawingBrush.width = pencilWidth;
+    // 设置 openSeadragon 事件监听
+    openSeadragon.addHandler('update-viewport', resize);
+    openSeadragon.addHandler('open', resize);
+    // 设置 fabric 事件监听
+    mouseDown();
+    mouseMove();
+    mouseUp();
+    onSelectObject();
+    // 注入批注数据
+    getAnnotate();
   };
   // 初始化比例尺工具
   const initScale = () => {
     // 比例尺
     openSeadragon.scalebar({
-      // type: OpenSeadragon.ScalebarType.MICROSCOPY,
       // 设置像素与实际的比值
       pixelsPerMeter: 1000000,
       minWidth: '150px',
-      // location: OpenSeadragon.ScalebarLocation.BOTTOM_LEFT,
       xOffset: 0,
       yOffset: 0,
       stayInsideImage: false,
@@ -238,31 +205,18 @@ const ImageMark = () => {
       fabricCanvas.absolutePan(new fabric.Point(canvasOffset.left - x + pageScroll.x, canvasOffset.top - y + pageScroll.y));
     }
   };
-  // 获取选择了什么画笔
-  const selectPencilHtml = () => {
-    switch (selectPencil) {
-      case EPencilType.circle:
-        return '○';
-      case EPencilType.rectangle:
-        return <BorderOutlined />;
-      case EPencilType.polygon:
-        return <StarOutlined />;
-      default:
-        return '未选择';
-    }
-  };
   // 监听键盘 delete 按钮
   const listenDelete = (e: any) => {
     if (e && e.keyCode === 46) {
       // 删除选中的图形
       fabricCanvas.remove(selectObj).renderAll();
-      localStorage.setItem('markData', JSON.stringify(fabricCanvas.toJSON(['id', 'text'])));
+      localStorage.setItem('markData', JSON.stringify(fabricCanvas.toJSON(['id'])));
       selectObj = null;
     }
   };
   // 显示工具盒子
   const showToolBarBox = () => {
-    setTollBarBoxShow(!toolBarBoxShow);
+    setToolBarBoxShow(!toolBarBoxShow);
     openSeadragon.setMouseNavEnabled(toolBarBoxShow);
   };
   // 选择画笔
@@ -357,6 +311,12 @@ const ImageMark = () => {
     let left: number = mouseFrom.x;
     let top: number = mouseFrom.y;
     const radius = Math.sqrt((mouseTo.x - left) * (mouseTo.x - left) + (mouseTo.y - top) * (mouseTo.y - top)) / canZoom;
+    const commonParams = {
+      stroke: pencilColor,
+      strokeWidth: pencilWidth,
+      selectionBackgroundColor: 'rgba(0, 0, 0, 0.25)',
+      fill: 'rgba(255, 255, 255, 0)'
+    };
     switch (selectPencil) {
       case EPencilType.circle:
         canvasObject = new fabric.Circle({
@@ -364,12 +324,9 @@ const ImageMark = () => {
           top: top / canZoom,
           originX: 'center',
           originY: 'center',
-          stroke: pencilColor,
-          fill: 'rgba(255, 255, 255, 0)',
-          selectionBackgroundColor: 'rgba(100,100,100,0.25)',
           radius: radius,
-          strokeWidth: pencilWidth,
-          hasControls: true
+          hasControls: true,
+          ...commonParams
         });
         break;
       case EPencilType.rectangle:
@@ -378,10 +335,7 @@ const ImageMark = () => {
           left: mouseFrom.x / canZoom,
           width: (mouseTo.x - mouseFrom.x) / canZoom,
           height: (mouseTo.y - mouseFrom.y) / canZoom,
-          stroke: pencilColor,
-          selectionBackgroundColor: 'rgba(100,100,100,0.25)',
-          strokeWidth: pencilWidth,
-          fill: 'rgba(255, 255, 255, 0)'
+          ...commonParams
         });
         break;
       case EPencilType.polygon:
@@ -390,10 +344,7 @@ const ImageMark = () => {
           y: offsetY / canZoom
         });
         canvasObject = new fabric.Polygon(lineList, {
-          stroke: pencilColor,
-          selectionBackgroundColor: 'rgba(100,100,100,0.25)',
-          strokeWidth: pencilWidth,
-          fill: 'rgba(255, 255, 255, 0)'
+          ...commonParams
         });
         break;
       default:
@@ -427,10 +378,9 @@ const ImageMark = () => {
   };
   // 添加批注
   const addAnnotate = () => {
-    currCanvasObject.text = '标注';
     currCanvasObject.id = new Date().valueOf();
     fabricCanvas.renderAll();
-    localStorage.setItem('markData', JSON.stringify(fabricCanvas.toJSON(['id', 'text'])));
+    localStorage.setItem('markData', JSON.stringify(fabricCanvas.toJSON(['id'])));
     setAnnotationView(false);
     resetCanvasOption();
   };
@@ -444,69 +394,24 @@ const ImageMark = () => {
       </div>
       <div id="openSeaDragon" style={{ width: '100%', height: 'calc(100vh - 60px)' }} />
       <div className="toolbar" style={{ top: 'calc(100vh / 2 - 120px)' }}>
-        <EditOutlined
-          className="toolbar-one"
-          title="批注"
-          onClick={showToolBarBox}
-        />
+        <EditOutlined className="toolbar-one" title="批注" onClick={showToolBarBox} />
       </div>
-      <div style={{ position: 'absolute', right: 0, display: toolBarBoxShow ? 'block' : 'none' }}>
-        <Tabs type="card" style={{ minWidth: 300, backgroundColor: '#333' }}>
-          <TabPane tab="画笔" key="1">
-            <div className="toolbar-container">
-              <BorderOutlined
-                className={selectPencil === 'rectangle' ? 'toolbar-one-right-bottom-active' : 'toolbar-one-right-bottom'}
-                title="矩形"
-                onClick={(e: any) => handleSelectPencil(e, EPencilType.rectangle)}
-              />
-              <StarOutlined
-                className={selectPencil === EPencilType.polygon ? 'toolbar-one-right-bottom-active' : 'toolbar-one-right-bottom'}
-                title="多边形"
-                onClick={(e: any) => handleSelectPencil(e, EPencilType.polygon)}
-              />
-              <div
-                className={selectPencil === EPencilType.circle ? 'toolbar-one-right-bottom-active' : 'toolbar-one-right-bottom'}
-                title="圆形"
-                onClick={(e: any) => handleSelectPencil(e, EPencilType.circle)}
-              >
-                ○
-              </div>
-            </div>
-          </TabPane>
-          <TabPane tab="颜色" key="2">
-            <div className="toolbar-container">
-              <CompactPicker
-                color={pencilColor}
-                onChangeComplete={(color: any) => setPencilColor(color.hex)}
-              />
-            </div>
-          </TabPane>
-          <TabPane tab="粗细" key="3">
-            <div className="toolbar-container">
-              <Slider
-                step={2}
-                min={2}
-                max={40}
-                value={pencilWidth}
-                style={{ width: '100%' }}
-                onChange={(pencilWidth: number) => setPencilWidth(pencilWidth)}
-              />
-            </div>
-          </TabPane>
-        </Tabs>
-      </div>
+      <PencilSetting
+        handleSelectPencil={handleSelectPencil}
+        selectPencil={selectPencil}
+        setPencilColor={setPencilColor}
+        setPencilWidth={setPencilWidth}
+        pencilColor={pencilColor}
+        pencilWidth={pencilWidth}
+        toolBarBoxShow={toolBarBoxShow}
+      />
       <div className="scale-bar" style={{ top: 'calc(100vh / 2 - 120px)' }}>
         <PlusCircleOutlined id="zoom-in" className="toolbar-one" onClick={scaleView} />
         <div className="scale-number">{zoomNum} X</div>
         <MinusCircleOutlined id="zoom-out" className="toolbar-one" onClick={scaleView} />
         {multipleList.map((item: number) => <div key={item} className="scale-multiple" onClick={() => toMultiple(item)}>{item} X</div>)}
       </div>
-      <Modal
-        title="添加批注"
-        visible={annotationView}
-        onCancel={cancelAddAnnotate}
-        footer={false}
-      >
+      <Modal title="添加批注" visible={annotationView} onCancel={cancelAddAnnotate} footer={false}>
         <Button onClick={addAnnotate}>确认</Button>
       </Modal>
     </Row>
